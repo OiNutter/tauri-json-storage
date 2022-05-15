@@ -24,10 +24,8 @@
 
 'use strict';
 
-const _ = require('lodash');
-const path = require('path');
-const electron = require('electron');
-const app = electron.app || (electron.remote && electron.remote.app) || null;
+import { isNil, isString } from "lodash"
+import {path} from "@tauri-apps/api"
 
 /**
  * @summary Get the default data path
@@ -39,19 +37,15 @@ const app = electron.app || (electron.remote && electron.remote.app) || null;
  * @example
  * const defaultDataPath = utils.getDefaultDataPath()
  */
-exports.getDefaultDataPath = function() {
-  if (!app) {
-    return null;
-  }
-
-  return path.join(app.getPath('userData'), 'storage');
+export async function getDefaultDataPath(): Promise<string> {
+  return path.join(await path.dataDir(), 'storage');
 };
 
 /**
  * @summary The current data path
  * @type {String}
  */
-var currentDataPath;
+let currentDataPath: string | undefined;
 
 /**
  * @summary Set default data path
@@ -64,17 +58,18 @@ var currentDataPath;
  * const os = require('os');
  * utils.setDataPath(os.tmpdir());
  */
-exports.setDataPath = function(directory) {
-  if (_.isNil(directory)) {
+export async function setDataPath(directory: string) : Promise<void> {
+  if (isNil(directory)) {
     currentDataPath = undefined;
     return;
   }
 
-  if (!path.isAbsolute(directory)) {
-    throw new Error('The user data path should be an absolute directory');
+  if ((!await path.isAbsolute(directory))) {
+    throw new Error('The user data path should be an absolute path');
   }
 
-  currentDataPath = path.normalize(directory);
+  currentDataPath = await path.normalize(directory);
+
 };
 
 /**
@@ -88,8 +83,8 @@ exports.setDataPath = function(directory) {
  * const dataPath = utils.getDataPath();
  * console.log(dataPath);
  */
-exports.getDataPath = function() {
-  return currentDataPath || exports.getDefaultDataPath();
+export async function getDataPath() : Promise<string> {
+  return (new Promise((resolve) => resolve(currentDataPath))) || await (getDefaultDataPath());
 };
 
 /**
@@ -106,20 +101,19 @@ exports.getDataPath = function() {
  * let fileName = utils.getFileName('foo');
  * console.log(fileName);
  */
-exports.getFileName = function(key, options) {
-  options = options || {};
-
+export async function getFileName(key: string, options: {dataPath?: string} = {}) : Promise<string> {
+  
   if (!key) {
     throw new Error('Missing key');
   }
 
-  if (!_.isString(key) || key.trim().length === 0) {
+  if (!isString(key) || key.trim().length === 0) {
     throw new Error('Invalid key');
   }
 
   // Trick to prevent adding the `.json` twice
   // if the key already contains it.
-  const keyFileName = path.basename(key, '.json') + '.json';
+  const keyFileName = await path.basename(key, '.json') + '.json';
 
   // Prevent ENOENT and other similar errors when using
   // reserved characters in Windows filenames.
@@ -127,12 +121,12 @@ exports.getFileName = function(key, options) {
   const escapedFileName = encodeURIComponent(keyFileName)
     .replace(/\*/g, '-').replace(/%20/g, ' ');
 
-  const dataPath = options.dataPath || exports.getDataPath();
+  const dataPath = options.dataPath || await getDataPath();
   if (!dataPath) {
     throw new Error('You must explicitly set a data path');
   }
 
-  return path.join(dataPath, escapedFileName);
+  return await path.join(dataPath, escapedFileName);
 };
 
 /**
@@ -147,6 +141,6 @@ exports.getFileName = function(key, options) {
  * let lockFileName = utils.getLockFileName('foo');
  * console.log(lockFileName);
  */
-exports.getLockFileName = function(fileName) {
-  return fileName + '.lock';
+export function getLockFileName(fileName) : string {
+  return `${fileName}.lock`;
 };

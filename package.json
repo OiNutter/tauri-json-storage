@@ -1,8 +1,9 @@
 {
-  "name": "electron-json-storage",
-  "version": "4.5.0",
+  "name": "tauri-json-storage",
+  "version": "0.0.1",
   "description": "Easily write and read user settings in Electron apps",
-  "main": "lib/storage.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "homepage": "https://github.com/electron-userland/electron-json-storage",
   "repository": {
     "type": "git",
@@ -12,6 +13,8 @@
     "test": "tests"
   },
   "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
     "test": "npm run lint && electron-mocha --recursive tests -R spec && electron-mocha --renderer --recursive tests -R spec",
     "lint": "jshint --config .jshintrc --reporter unix lib tests stress",
     "readme": "jsdoc2md --template doc/README.hbs lib/storage.js > README.md"
@@ -27,12 +30,16 @@
   "author": "Juan Cruz Viotti <jv@jviotti.com>",
   "license": "MIT",
   "devDependencies": {
+    "@tauri-apps/api": "^1.0.0-rc.3",
+    "@types/lodash": "^4.14.181",
     "chai": "^4.2.0",
     "electron": "^10.1.3",
     "electron-mocha": "^9.2.0",
     "jsdoc-to-markdown": "^6.0.1",
     "jshint": "^2.9.1",
-    "tmp": "0.0.31"
+    "tmp": "0.0.31",
+    "tsc": "^2.0.4",
+    "typescript": "^4.6.3"
   },
   "dependencies": {
     "async": "^2.0.0",
